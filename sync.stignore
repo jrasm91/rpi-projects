@@ -1,0 +1,6 @@
+node_modules
+.stfolder
+(?d)__pycache__
+(?d).git
+*.db
+(?d).ipynb_checkpoints

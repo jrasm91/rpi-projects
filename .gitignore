@@ -1,0 +1,7 @@
+from_pi
+notes
+old
+__pycache__
+*.db
+*.log
+*.conf

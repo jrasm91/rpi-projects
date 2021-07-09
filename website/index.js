@@ -37,9 +37,11 @@ const app = new Vue({
     loading: false,
     zones: [],
     waterHistory: [],
+    activeTab: 'zones',
     scheduled: [],
     sunset: null,
     sunrise: null,
+    sunsetHistory: [],
     connected: false,
   },
   created: function () {
@@ -51,7 +53,15 @@ const app = new Vue({
       const websocket = new WebSocket(url);
       websocket.onopen = () => (this.connected = true);
       websocket.onclose = () => (this.connected = false);
-      websocket.onmessage = (event) => this.onMessage(event);
+      websocket.onmessage = (event) => {
+        const data = JSON.parse(event.data);
+        if (data.type === 'connect') {
+          this.onConnect(data);
+        }
+        if (data.type === 'refresh') {
+          this.onRefresh(data);
+        }
+      };
       this.websocket = websocket;
     },
     handleRefresh: function () {
@@ -90,8 +100,27 @@ const app = new Vue({
       const key = item._key;
       item._expanded = _expanded[key] = !_expanded[key];
     },
-    onMessage: function (event) {
-      data = JSON.parse(event.data);
+    onConnect: function (data) {
+      const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+      let todayMonth = monthNames[new Date().getMonth()];
+      let todayDay = dayPipe(new Date());
+      let currentMonth = null;
+      let list = [];
+      for (let [sunrise, sunset] of data.sunset_history || []) {
+        const monthName = monthNames[new Date(sunrise).getMonth()];
+        if (!currentMonth || monthName !== currentMonth.month) {
+          currentMonth = { month: monthName, items: [] };
+          list.push(currentMonth);
+          const key = `month.${monthName}`;
+          currentMonth._key = key;
+          currentMonth._expanded = _expanded[key];
+          currentMonth.active = monthName === todayMonth;
+        }
+        currentMonth.items.push({ sunset, sunrise, active: todayDay === dayPipe(sunset) });
+      }
+      this.sunsetHistory = list;
+    },
+    onRefresh: function (data) {
       this.loading = false;
       this.waterHistory = [];
       this.scheduled = [];

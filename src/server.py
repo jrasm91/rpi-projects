@@ -17,7 +17,7 @@ class Server():
 
   async def _handle(self, websocket, path):
     self.connections.add(websocket)
-    await self._send_data()
+    await self._send_data(None, True)
     try:
       async for message in websocket:
         data = json.loads(message)
@@ -71,7 +71,7 @@ class Server():
     finally:
       self.connections.remove(websocket)
 
-  async def _send_data(self, connection=None):
+  async def _send_data(self, connection=None, first=False):
     def _as_dict(model, **kwargs):
       if not model:
         return None
@@ -85,7 +85,12 @@ class Server():
     sunrise = self.utility.get_sunrise()
     sunset = self.utility.get_sunset()
 
+    if first:
+      sunset_history = self.utility.get_sunset_history()
+      await self._notify(json.dumps({ 'type': 'connect', 'sunset_history': sunset_history, }, default=str), connection) 
+
     await self._notify(json.dumps({ 
+      'type': 'refresh',
       'zones': _as_dict(zones, extra_attrs=['next_water_date']), 
       'water_history': _as_dict(water_history),
       'sunset': sunset,

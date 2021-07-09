@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Sprinklers</title>
+    <title>💧 Sprinklers</title>
     <link rel="stylesheet" href="bootstrap.css" />
     <link rel="stylesheet" href="index.css" />
     <script src="bootstrap.js"></script>
@@ -13,199 +13,228 @@
   <body>
     <div id="app">
       <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-        <div class="d-flex justify-content-between align-items-center ps-1 pe-1">
-          <a class="navbar-brand fw-bold fs-1 ps-3" href="#">Sprinklers</a>
-        </div>
-        <div class="text-end pe-1">
-          <span class="fs-5 text-light fw-bold">{{ today | dayPipe }}</span>
-          <span class="d-flex flex-column text-light" v-if="sunset && sunrise">
-            <span>🌅 {{ sunrise | timePipe }} / {{ sunset | timePipe }}</span>
-          </span>
-        </div>
-      </nav>
-      <div class="main-container container">
-        <div class="row">
-          <div class="col-12">
-            <span class="d-flex justify-content-end">
-              <button type="button" class="btn btn-primary" @click="handleRefresh()">
-                <span class="text-muted fw-bold">
-                  <span class="fs-5" :class="{ 'text-success': connected, 'text-danger': !connected }">●</span>
-                </span>
-                <span v-if="connected">Refresh</span>
-                <span v-if="!connected">Connect</span>
-              </button>
+        <div class="d-flex justify-content-between align-items-center ps-1 pe-1 flex-grow-1">
+          <a class="navbar-brand fw-bold fs-1 ps-3" href="#">💧 Sprinklers</a>
+          <div class="text-end pe-1">
+            <span class="fs-5 text-light fw-bold">{{ today | dayPipe }}</span>
+            <span class="d-flex flex-column text-light" v-if="sunset && sunrise">
+              <span>🌅 {{ sunrise | timePipe }} / {{ sunset | timePipe }}</span>
             </span>
           </div>
         </div>
-        <div class="row">
-          <div class="col-12 col-md-6">
-            <div class="d-flex justify-content-between align-items-center">
-              <h2 class="mt-4">Zones</h2>
-              <span class="text-muted fw-bold">
-                [
-                <span class="text-success">● On</span> /
-                <span class="text-danger">● Off</span>
-                ]
-              </span>
-            </div>
-            <div class="col-12" v-for="zone of zones">
-              <div class="card mb-3" :class="{ 'fst-italic': !zone.is_enabled, 'text-muted': !zone.is_enabled }">
-                <div class="card-header d-flex" @click="handleToggle(zone)">
-                  <div class="d-flex align-items-center justify-content-between flex-grow-1">
-                    <span class="d-flex align-items-center">
-                      <span class="fs-5 me-2" :class="{ 'text-success': zone.is_running, 'text-danger': !zone.is_running }">●</span>
-                      <span>
-                        <span>{{ zone.name }}</span>
-                        <span class="ms-1">({{ zone.valve }})</span>
-                      </span>
-                    </span>
+      </nav>
+      <div class="main-container container">
+        <div class="d-flex justify-content-end">
+          <button :hidden="connected" type="button" class="btn btn-primary" @click="handleRefresh()">
+            <span class="text-muted fw-bold">
+              <span class="fs-5" :class="{ 'text-success': connected, 'text-danger': !connected }">●</span>
+            </span>
+            <span v-if="connected">Refresh</span>
+            <span v-if="!connected">Connect</span>
+          </button>
+        </div>
+
+        <!-- Zones and Queue -->
+        <div v-if="activeTab === 'zones'">
+          <div class="d-flex justify-content-between align-items-center">
+            <h2>Zones</h2>
+            <span class="text-muted fw-bold">
+              [
+              <span class="text-success">● On</span> /
+              <span class="text-danger">● Off</span>
+              ]
+            </span>
+          </div>
+          <div v-for="zone of zones">
+            <div class="card mb-3" :class="{ 'fst-italic': !zone.is_enabled, 'text-muted': !zone.is_enabled }">
+              <div class="card-header d-flex cursor-pointer" @click="handleToggle(zone)">
+                <div class="d-flex align-items-center justify-content-between flex-grow-1">
+                  <span class="d-flex align-items-center">
+                    <span class="fs-5 me-2" :class="{ 'text-success': zone.is_running, 'text-danger': !zone.is_running }">●</span>
                     <span>
-                      <span class="fw-bold">{{ zone.water_duration }}m</span>
-                      <span class="ms-1">
-                        <span v-if="zone.water_type === 'spray'">🚿</span>
-                        <span v-if="zone.water_type === 'drip'">💧</span>
-                        <span v-if="zone.water_type === 'multi'">💦</span>
-                      </span>
+                      <span>{{ zone.name }}</span>
+                      <span class="ms-1">({{ zone.valve }})</span>
                     </span>
-                  </div>
+                  </span>
+                  <span>
+                    <span class="fw-bold">{{ zone.water_duration }}m</span>
+                    <span class="ms-1">
+                      <span v-if="zone.water_type === 'spray'">🚿</span>
+                      <span v-if="zone.water_type === 'drip'">💧</span>
+                      <span v-if="zone.water_type === 'multi'">💦</span>
+                    </span>
+                  </span>
                 </div>
-                <div v-if="zone._expanded" class="card-body">
-                  <p class="card-text">
-                    <span>Last Water Date:</span>
-                    <span class="fw-bold">{{ zone.last_water_date | dayPipe }}</span>
-                  </p>
-                  <p class="card-text">
-                    <span>Next Water Date:</span>
-                    <span class="fw-bold">{{ zone.next_water_date | dayPipe }}</span>
-                  </p>
-                  <p class="card-text">
-                    <span>Schedule Override:</span>
-                    <span class="fw-bold">{{ zone.schedule_override }}</span>
-                  </p>
-                </div>
-                <div v-if="zone._expanded" class="card-footer">
-                  <div class="d-flex justify-content-end">
-                    <div>
-                      <button :disabled="loading" type="button" class="ms-1 btn btn-primary btn-sm" @click="handleAdjustOverride(zone, -1)">
-                        <span>-1 Day</span>
-                      </button>
-                      <button :disabled="loading" type="button" class="ms-1 btn btn-primary btn-sm" @click="handleAdjustOverride(zone, 1)">
-                        <span>+1 Day</span>
-                      </button>
-                      <button :disabled="loading" type="button" class="ms-1 btn btn-sm btn-warning" @click="handleSchedule(zone, 15)">Schedule Now</button>
-                      <!-- <button v-if="zone.is_running" :disabled="loading" type="button" class="ms-1 btn btn-sm btn-danger" @click="handleStop(zone)">Turn Off</button>
+              </div>
+              <div v-if="zone._expanded" class="card-body">
+                <p class="card-text">
+                  <span>Last Water Date:</span>
+                  <span class="fw-bold">{{ zone.last_water_date | dayPipe }}</span>
+                </p>
+                <p class="card-text">
+                  <span>Next Water Date:</span>
+                  <span class="fw-bold">{{ zone.next_water_date | dayPipe }}</span>
+                </p>
+                <p class="card-text">
+                  <span>Schedule Override:</span>
+                  <span class="fw-bold">{{ zone.schedule_override }}</span>
+                </p>
+              </div>
+              <div v-if="zone._expanded" class="card-footer">
+                <div class="d-flex justify-content-end">
+                  <div>
+                    <button :disabled="loading" type="button" class="ms-1 btn btn-primary btn-sm" @click="handleAdjustOverride(zone, -1)">
+                      <span>-1 Day</span>
+                    </button>
+                    <button :disabled="loading" type="button" class="ms-1 btn btn-primary btn-sm" @click="handleAdjustOverride(zone, 1)">
+                      <span>+1 Day</span>
+                    </button>
+                    <button :disabled="loading" type="button" class="ms-1 btn btn-sm btn-warning" @click="handleSchedule(zone, 15)">Schedule Now</button>
+                    <!-- <button v-if="zone.is_running" :disabled="loading" type="button" class="ms-1 btn btn-sm btn-danger" @click="handleStop(zone)">Turn Off</button>
                       <button v-if="!zone.is_running" :disabled="loading" type="button" class="ms-1 btn btn-sm btn-success" @click="handleStart(zone)">Turn On</button> -->
-                    </div>
                   </div>
                 </div>
               </div>
             </div>
           </div>
-          <div class="col-12 col-md-6">
-            <div class="d-flex justify-content-between align-items-center">
-              <h2 class="mt-4">Queue</h2>
-              <span class="text-muted fw-bold">
-                [
-                <span class="text-success">● Active</span> /
-                <span class="text-warning">● Pending</span>
-                ]
-              </span>
-            </div>
-            <div class="mb-2" v-if="scheduled.length === 0">
-              <span>No scheduled zones.</span>
-            </div>
-            <div class="row">
-              <div class="col-12 mb-2" v-for="day in scheduled" :key="day.day">
-                <h6 class="fw-bold">{{ day.day | dayPipe }}</h6>
-                <div class="card mb-3" v-for="item in day.items">
-                  <div class="card-header d-flex justify-content-between" @click="handleToggle(item)">
-                    <span>
-                      <span class="fs-5" :class="{ 'text-success': item.state==='active', 'text-warning': item.state==='pending' }">●</span>
-                      <span> {{ item.name }} ({{ item.valve }})</span>
-                      <span class="text-uppercase text-muted fst-italic ms-1">{{ item.run_type }}</span>
-                    </span>
-                    <span>{{ item.scheduled_start | timePipe }} - {{ item.scheduled_end | timePipe }}</span>
-                  </div>
-                  <div v-if="item._expanded" class="card-body">
-                    <p>
-                      <span class="fw-bold">Duration: </span>
-                      <span>{{ item.water_duration }}m</span>
-                    </p>
-                    <p v-if="item.actual_start">
-                      <span class="fw-bold">Actual Start: </span>
-                      <span>{{ item.actual_start | timePipe }}</span>
-                    </p>
-                  </div>
-                  <div v-if="item._expanded" class="card-footer">
-                    <div class="d-flex">
-                      <button :disabled="loading" type="button" class="flex-grow-1 ms-1 btn btn-primary btn-sm" @click="handleAdjustScheduledDuration(item, -1)">
-                        <span>-1 min</span>
-                      </button>
-                      <button :disabled="loading" type="button" class="flex-grow-1 ms-1 btn btn-primary btn-sm" @click="handleAdjustScheduledDuration(item, -5)">
-                        <span>-5 min</span>
-                      </button>
-                      <button :disabled="loading" type="button" class="flex-grow-1 ms-1 btn btn-primary btn-sm" @click="handleAdjustScheduledDuration(item, -60)">
-                        <span>-60 min</span>
-                      </button>
-                    </div>
-                    <div class="d-flex mt-1">
-                      <button :disabled="loading" type="button" class="flex-grow-1 ms-1 btn btn-primary btn-sm" @click="handleAdjustScheduledDuration(item, 1)">
-                        <span>+1 min</span>
-                      </button>
-                      <button :disabled="loading" type="button" class="flex-grow-1 ms-1 btn btn-primary btn-sm" @click="handleAdjustScheduledDuration(item, 5)">
-                        <span>+5 min</span>
-                      </button>
-                      <button :disabled="loading" type="button" class="flex-grow-1 ms-1 btn btn-primary btn-sm" @click="handleAdjustScheduledDuration(item, 60)">
-                        <span>+60 min</span>
-                      </button>
-                    </div>
-                    <div v-if="item.state === 'pending'">
-                      <hr />
-                      <div class="d-flex justify-content-end">
-                        <button :disabled="loading" type="button" class="ms-1 btn btn-sm btn-danger" @click="handleCancelScheduled(item)">Cancel</button>
-                      </div>
-                    </div>
+
+          <hr />
+
+          <!-- Queue -->
+          <div class="d-flex justify-content-between align-items-center">
+            <h2>Queue</h2>
+            <span class="text-muted fw-bold">
+              [
+              <span class="text-success">● Active</span> /
+              <span class="text-warning">● Pending</span>
+              ]
+            </span>
+          </div>
+          <div class="mb-2" v-if="scheduled.length === 0">
+            <span>No scheduled zones.</span>
+          </div>
+          <div class="mb-2" v-for="day in scheduled" :key="day.day">
+            <h6 class="fw-bold">{{ day.day | dayPipe }}</h6>
+            <div class="card mb-3" v-for="item in day.items">
+              <div class="card-header d-flex justify-content-between cursor-pointer" @click="handleToggle(item)">
+                <span>
+                  <span class="fs-5" :class="{ 'text-success': item.state==='active', 'text-warning': item.state==='pending' }">●</span>
+                  <span> {{ item.name }} ({{ item.valve }})</span>
+                  <span class="text-uppercase text-muted fst-italic ms-1">{{ item.run_type }}</span>
+                </span>
+                <span>{{ item.scheduled_start | timePipe }} - {{ item.scheduled_end | timePipe }}</span>
+              </div>
+              <div v-if="item._expanded" class="card-body">
+                <p>
+                  <span class="fw-bold">Duration: </span>
+                  <span>{{ item.water_duration }}m</span>
+                </p>
+                <p v-if="item.actual_start">
+                  <span class="fw-bold">Actual Start: </span>
+                  <span>{{ item.actual_start | timePipe }}</span>
+                </p>
+              </div>
+              <div v-if="item._expanded" class="card-footer">
+                <div class="d-flex">
+                  <button :disabled="loading" type="button" class="flex-grow-1 ms-1 btn btn-primary btn-sm" @click="handleAdjustScheduledDuration(item, -1)">
+                    <span>-1 min</span>
+                  </button>
+                  <button :disabled="loading" type="button" class="flex-grow-1 ms-1 btn btn-primary btn-sm" @click="handleAdjustScheduledDuration(item, -5)">
+                    <span>-5 min</span>
+                  </button>
+                  <button :disabled="loading" type="button" class="flex-grow-1 ms-1 btn btn-primary btn-sm" @click="handleAdjustScheduledDuration(item, -60)">
+                    <span>-60 min</span>
+                  </button>
+                </div>
+                <div class="d-flex mt-1">
+                  <button :disabled="loading" type="button" class="flex-grow-1 ms-1 btn btn-primary btn-sm" @click="handleAdjustScheduledDuration(item, 1)">
+                    <span>+1 min</span>
+                  </button>
+                  <button :disabled="loading" type="button" class="flex-grow-1 ms-1 btn btn-primary btn-sm" @click="handleAdjustScheduledDuration(item, 5)">
+                    <span>+5 min</span>
+                  </button>
+                  <button :disabled="loading" type="button" class="flex-grow-1 ms-1 btn btn-primary btn-sm" @click="handleAdjustScheduledDuration(item, 60)">
+                    <span>+60 min</span>
+                  </button>
+                </div>
+                <div v-if="item.state === 'pending'">
+                  <hr />
+                  <div class="d-flex justify-content-end">
+                    <button :disabled="loading" type="button" class="ms-1 btn btn-sm btn-danger" @click="handleCancelScheduled(item)">Cancel</button>
                   </div>
                 </div>
               </div>
             </div>
-            <div class="d-flex justify-content-between align-items-center">
-              <h2 class="mt-4">History</h2>
+          </div>
+        </div>
+
+        <!-- History -->
+        <div v-if="activeTab === 'history'">
+          <div class="d-flex justify-content-between align-items-center">
+            <h2>History</h2>
+          </div>
+          <div class="mb-2" v-for="day in waterHistory">
+            <h6 class="fw-bold">{{ day.day | dayPipe }}</h6>
+            <div class="card mb-3" v-for="item in day.items">
+              <div class="card-header d-flex justify-content-between cursor-pointer" @click="handleToggle(item)">
+                <span>
+                  <span> {{ item.name }} ({{ item.valve }})</span>
+                  <span v-if="item.run_type==='manual'" class="ms-2 text-uppercase fw-bold">*{{ item.run_type }}*</span>
+                </span>
+                <span>
+                  <span v-if="item.state !== 'cancelled'">{{ item.actual_start | timePipe }} - {{ item.actual_end | timePipe }}</span>
+                  <span v-if="item.state === 'cancelled'" class="fst-italic">CANCELLED</span>
+                </span>
+              </div>
+              <div v-if="item._expanded" class="card-body">
+                <p v-if="item.scheduled_start">
+                  <span class="fw-bold">Scheduled: </span>
+                  <span>{{ item.scheduled_start | timePipe }}</span>
+                  <span> - </span>
+                  <span v-if="item.scheduled_end">{{ item.scheduled_end | timePipe }}</span>
+                </p>
+                <p v-if="item.actual_start">
+                  <span class="fw-bold">Actual: </span>
+                  <span>{{ item.actual_start | timePipe }}</span>
+                  <span> - </span>
+                  <span v-if="item.actual_end">{{ item.actual_end | timePipe }}</span>
+                </p>
+              </div>
             </div>
-            <div class="row">
-              <div class="col-12 mb-2" v-for="day in waterHistory">
-                <h6 class="fw-bold">{{ day.day | dayPipe }}</h6>
-                <div class="card mb-3" v-for="item in day.items">
-                  <div class="card-header d-flex justify-content-between" @click="handleToggle(item)">
-                    <span>
-                      <span> {{ item.name }} ({{ item.valve }})</span>
-                      <span v-if="item.run_type==='manual'" class="ms-2 text-uppercase fw-bold">*{{ item.run_type }}*</span>
-                    </span>
-                    <span>
-                      <span v-if="item.state !== 'cancelled'">{{ item.actual_start | timePipe }} - {{ item.actual_end | timePipe }}</span>
-                      <span v-if="item.state === 'cancelled'" class="fst-italic">CANCELLED</span>
-                    </span>
-                  </div>
-                  <div v-if="item._expanded" class="card-body">
-                    <p v-if="item.scheduled_start">
-                      <span class="fw-bold">Scheduled: </span>
-                      <span>{{ item.scheduled_start | timePipe }}</span>
-                      <span> - </span>
-                      <span v-if="item.scheduled_end">{{ item.scheduled_end | timePipe }}</span>
-                    </p>
-                    <p v-if="item.actual_start">
-                      <span class="fw-bold">Actual: </span>
-                      <span>{{ item.actual_start | timePipe }}</span>
-                      <span> - </span>
-                      <span v-if="item.actual_end">{{ item.actual_end | timePipe }}</span>
-                    </p>
-                  </div>
+          </div>
+        </div>
+
+        <div v-if="activeTab === 'sunrise'">
+          <h2>Sunset / Sunrise</h2>
+          <div class="list-group mb-3">
+            <div class="list-group-item cursor-pointer" v-for="month in sunsetHistory" :key="month.month" @click="handleToggle(month)">
+              <div class="d-flex justify-content-between" :class="{ 'fw-bold': month.active }">
+                <span>{{ month.month }}</span>
+                <span class="fw-bold">{{ month.items.length }}</span>
+              </div>
+              <div v-if="month._expanded">
+                <hr />
+                <div v-for="item in month.items" class="d-flex justify-content-between" :class="{ 'fw-bold': item.active }">
+                  <span class="fs-5">{{ item.sunset | dayPipe }}</span>
+                  <span>🌅{{ item.sunrise | timePipe }} / {{ item.sunset | timePipe }}</span>
                 </div>
               </div>
             </div>
           </div>
         </div>
       </div>
+      <nav id="footer" class="border-0 border-top border-dark navbar fixed-bottom bg-light">
+        <button type="button" class="ms-1 me-1 flex-even btn" :class="{ 'btn-primary': activeTab === 'zones' }" @click="activeTab = 'zones'">
+          <span>💧 Zones</span>
+        </button>
+        <button type="button" class="me-1 flex-even btn" :class="{ 'btn-primary': activeTab === 'history' }" @click="activeTab = 'history'">
+          <span>📜 History</span>
+        </button>
+        <button type="button" class="me-1 flex-even btn" :class="{ 'btn-primary': activeTab === 'sunrise' }" @click="activeTab = 'sunrise'">
+          <span>🌅 Sunrise</span>
+          <!-- <span>Sunrise</span> -->
+        </button>
+      </nav>
     </div>
     <script src="index.js"></script>
   </body>

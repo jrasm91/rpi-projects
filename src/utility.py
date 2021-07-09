@@ -106,6 +106,11 @@ class Utility():
   def get_sunset(self, day=None):
     return self._get_sun_times(day)[1]
 
+  def get_sunset_history(self, days=365):
+    now = date.today().replace(month=1, day=1)
+    return [self._get_sun_times(now + timedelta(days=i)) for i in range(days)]
+
+
   def _get_sun_times(self, day=None):
     if not day:
       day = date.today()
@@ -188,4 +193,8 @@ class Utility():
 
 if __name__ == '__main__':
   utility = Utility()
-  print(utility.get_gpio_number(1))
+  # print(utility.get_gpio_number(1))
+
+  history = utility.get_sunset_history()
+  for sunset, sunrise in history:
+    print(f'Sunset: {sunset}, Sunrise: {sunrise}')

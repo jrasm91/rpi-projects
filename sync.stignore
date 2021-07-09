@@ -1,6 +1,7 @@
 node_modules
 .stfolder
 (?d)__pycache__
+(?d).ipynb_checkpoints
 (?d).git
 *.db
-(?d).ipynb_checkpoints
+*.db-journal

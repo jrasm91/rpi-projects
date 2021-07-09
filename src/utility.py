@@ -49,6 +49,7 @@ def _str(now):
 class Utility():
   def __init__(self, simulation=False):
     self.simulation = simulation
+    self.cache = dict()
 
   def get_gpio_number(self, valve):
     valve = str(valve)
@@ -99,13 +100,24 @@ class Utility():
     logger.info(f'sleep_until({start_time}, {now}) => seconds={delta}')
     time.sleep(delta)
 
-  def get_sunrise(self, date=date.today()):
-    return self._get_sun_time(date, True)
+  def get_sunrise(self, day=None):
+    return self._get_sun_times(day)[0]
 
-  def get_sunset(self, date=date.today()):
-    return self._get_sun_time(date, False)
+  def get_sunset(self, day=None):
+    return self._get_sun_times(day)[1]
 
-  def _get_sun_time(self, today=date.today(), isRiseTime=True, zenith=90.8):
+  def _get_sun_times(self, day=None):
+    if not day:
+      day = date.today()
+    key = str(day)
+    cached = self.cache.get(key)
+    if not cached:
+      sunrise = self._calc_sun_time(day, True)
+      sunset = self._calc_sun_time(day, False)
+      cached = self.cache[key] = [sunrise, sunset]
+    return cached
+
+  def _calc_sun_time(self, today=date.today(), isRiseTime=True, zenith=90.8):
     if isinstance(today, datetime):
       today = today.date()
 

@@ -12,22 +12,31 @@
   </head>
   <body>
     <div id="app">
-      <nav class="navbar navbar-expand-lg fixed-top navbar-dark bg-dark">
-        <div class="container-fluid">
-          <a class="navbar-brand" href="#">Sprinklers</a>
-          <span class="navbar-brand fw-bold">{{ today | dayPipe }}</span>
-          <span>
-            <button type="button" class="btn btn-primary" @click="handleRefresh()">
-              <span class="text-muted fw-bold">
-                <span class="fs-5" :class="{ 'text-success': connected, 'text-danger': !connected }">●</span>
-              </span>
-              <span v-if="connected">Refresh</span>
-              <span v-if="!connected">Connect</span>
-            </button>
+      <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="d-flex justify-content-between align-items-center ps-1 pe-1">
+          <a class="navbar-brand fw-bold fs-1 ps-3" href="#">Sprinklers</a>
+        </div>
+        <div class="text-end pe-1">
+          <span class="fs-5 text-light fw-bold">{{ today | dayPipe }}</span>
+          <span class="d-flex flex-column text-light" v-if="sunset && sunrise">
+            <span>🌅 {{ sunrise | timePipe }} / {{ sunset | timePipe }}</span>
           </span>
         </div>
       </nav>
       <div class="main-container container">
+        <div class="row">
+          <div class="col-12">
+            <span class="d-flex justify-content-end">
+              <button type="button" class="btn btn-primary" @click="handleRefresh()">
+                <span class="text-muted fw-bold">
+                  <span class="fs-5" :class="{ 'text-success': connected, 'text-danger': !connected }">●</span>
+                </span>
+                <span v-if="connected">Refresh</span>
+                <span v-if="!connected">Connect</span>
+              </button>
+            </span>
+          </div>
+        </div>
         <div class="row">
           <div class="col-12 col-md-6">
             <div class="d-flex justify-content-between align-items-center">
@@ -50,7 +59,14 @@
                         <span class="ms-1">({{ zone.valve }})</span>
                       </span>
                     </span>
-                    <span class="fw-bold">{{ zone.water_duration }}m</span>
+                    <span>
+                      <span class="fw-bold">{{ zone.water_duration }}m</span>
+                      <span class="ms-1">
+                        <span v-if="zone.water_type === 'spray'">🚿</span>
+                        <span v-if="zone.water_type === 'drip'">💧</span>
+                        <span v-if="zone.water_type === 'multi'">💦</span>
+                      </span>
+                    </span>
                   </div>
                 </div>
                 <div v-if="zone._expanded" class="card-body">

@@ -82,7 +82,15 @@ class Server():
     zones = [zone for zone in Zone.select()]
     water_history = [history for history in WaterHistory.select().order_by(WaterHistory.actual_start.desc())]
 
-    await self._notify(json.dumps({ 'zones': _as_dict(zones, extra_attrs=['next_water_date']), 'water_history': _as_dict(water_history), }, default=str), connection)
+    sunrise = self.utility.get_sunrise()
+    sunset = self.utility.get_sunset()
+
+    await self._notify(json.dumps({ 
+      'zones': _as_dict(zones, extra_attrs=['next_water_date']), 
+      'water_history': _as_dict(water_history),
+      'sunset': sunset,
+      'sunrise': sunrise,
+    }, default=str), connection)
 
   async def _notify(self, message, connection):
     connections = self.connections

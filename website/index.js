@@ -38,6 +38,8 @@ const app = new Vue({
     zones: [],
     waterHistory: [],
     scheduled: [],
+    sunset: null,
+    sunrise: null,
     connected: false,
   },
   created: function () {
@@ -93,6 +95,9 @@ const app = new Vue({
       this.loading = false;
       this.waterHistory = [];
       this.scheduled = [];
+
+      this.sunrise = data.sunrise;
+      this.sunset = data.sunset;
 
       data.water_history = (data.water_history || []).sort((a, b) => {
         date1 = new Date(a.actual_start || a.scheduled_start);

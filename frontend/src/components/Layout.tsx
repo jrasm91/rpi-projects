@@ -1,4 +1,4 @@
-import { Box, Button, Flex, Heading, SimpleGrid, VStack } from '@chakra-ui/react';
+import { Box, Button, Flex, Heading, SimpleGrid } from '@chakra-ui/react';
 import { useEffect, useState } from 'react';
 
 interface LayoutProps {
